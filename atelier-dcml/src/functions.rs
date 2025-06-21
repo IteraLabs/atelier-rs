@@ -90,3 +90,6 @@ impl Regularized for CrossEntropy {
         regularized
     }
 }
+
+
+

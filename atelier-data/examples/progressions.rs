@@ -41,6 +41,7 @@ fn main() {
         let v_ask_price = ini_ask_price + ini_ask_price * r_amount_ret * r_sign_ret;
 
         let r_ob = Orderbook::random(
+            None,
             v_bid_price,
             ini_bid_levels,
             ini_bid_orders,

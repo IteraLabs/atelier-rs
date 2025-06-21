@@ -1,4 +1,4 @@
-use atelier_data::{orderbooks::Orderbook, templates};
+use atelier_data::templates;
 use atelier_synth::synthbooks::async_progressions;
 use std::{error::Error, fs::File, io::Write, path::Path};
 
@@ -37,12 +37,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         async_progressions(v_template_orderbook, v_template_model, n_progres).await;
 
     // --- Create Orderbook data files
-    let result_obs: Result<
-        Vec<Vec<Orderbook>>,
-        Box<dyn std::error::Error + Send + Sync>,
-    > = v_rand_ob.into_iter().collect();
 
-    match result_obs {
+    match v_rand_ob {
         Ok(all_orderbooks) => {
             println!(
                 "all {:?} of orderbooks successfully generated",

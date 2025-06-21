@@ -1,156 +1,55 @@
 [[training]]
 epochs = 100
-agents = 3 
+agents = 3
+connections = 6
 
 # --- row 0 --- #
 [[training.agent_connections]]
 from = 0
 to = 0
-weight = 0.20
+weight = 0.0
 
 [[training.agent_connections]]
 from = 0
 to = 1
-weight = 0.20
+weight = 0.5
 
 [[training.agent_connections]]
 from = 0
 to = 2
-weight = 0.20
-
-[[training.agent_connections]]
-from = 0
-to = 3
-weight = 0.20
-
-[[training.agent_connections]]
-from = 0
-to = 6
-weight = 0.20
+weight = 0.5
 
 # --- row 1 --- #
 
 [[training.agent_connections]]
 from = 1
 to = 0
-weight = 0.50
+weight = 0.5
 
 [[training.agent_connections]]
 from = 1
 to = 1
-weight = 0.50
+weight = 0.0
+
+[[training.agent_connections]]
+from = 1
+to = 2
+weight = 0.5
 
 # --- row 2 --- #
 
 [[training.agent_connections]]
 from = 2
 to = 0
-weight = 0.50
+weight = 0.5
+
+[[training.agent_connections]]
+from = 2
+to = 1
+weight = 0.5
 
 [[training.agent_connections]]
 from = 2
 to = 2
-weight = 0.50
-
-# --- row 3 --- #
-
-[[training.agent_connections]]
-from = 3
-to = 0
-weight = 0.20
-
-[[training.agent_connections]]
-from = 3
-to = 3
-weight = 0.20
-
-[[training.agent_connections]]
-from = 3
-to = 4
-weight = 0.20
-
-[[training.agent_connections]]
-from = 3
-to = 5
-weight = 0.20
-
-[[training.agent_connections]]
-from = 3
-to = 6
-weight = 0.20
-
-# --- row 4 --- #
-
-[[training.agent_connections]]
-from = 4
-to = 3
-weight = 0.50
-
-[[training.agent_connections]]
-from = 4
-to = 4
-weight = 0.50
-
-# --- row 5 --- #
-
-[[training.agent_connections]]
-from = 5
-to = 4
-weight = 0.50
-
-[[training.agent_connections]]
-from = 5
-to = 5
-weight = 0.50
-
-# --- row 6 --- #
-
-[[training.agent_connections]]
-from = 6
-to = 0
-weight = 0.20
-
-[[training.agent_connections]]
-from = 6
-to = 3
-weight = 0.20
-
-[[training.agent_connections]]
-from = 6
-to = 6
-weight = 0.20
-
-[[training.agent_connections]]
-from = 6
-to = 7
-weight = 0.20
-
-[[training.agent_connections]]
-from = 6
-to = 8
-weight = 0.20
-
-# --- row 7 --- #
-
-[[training.agent_connections]]
-from = 7
-to = 7
-weight = 0.50
-
-[[training.agent_connections]]
-from = 7
-to = 6
-weight = 0.50
-
-# --- row 8 --- #
-
-[[training.agent_connections]]
-from = 8
-to = 6
-weight = 0.50
-
-[[training.agent_connections]]
-from = 8
-to = 8
-weight = 0.50
+weight = 0.0
 

@@ -217,3 +217,22 @@ pub fn compute_tav(ob: &Orderbook, bps: f64) -> f64 {
     let i_tav = bid_volume + ask_volume;
     data::truncate_to_decimal(i_tav, 8)
 }
+
+/// Orderbook Updates Distribution
+///
+/// From the timeseries of timestamps where a new orderbook was formed
+///
+pub fn compute_obts(obs: &Vec<Orderbook>) -> Vec<f64> {
+
+    let ob_ts = obs
+        .iter()
+        .map(|ob| ob.orderbook_ts.clone() as f64)
+        .collect::<Vec<_>>()
+        .windows(2)
+        .map(|pair| pair[1] - pair[0])
+        .collect();
+
+    ob_ts
+
+}
+

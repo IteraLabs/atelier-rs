@@ -21,6 +21,34 @@ impl LinearModel {
     pub fn new(input_dim: i64) -> LinearModelBuilder {
         LinearModelBuilder::new(input_dim)
     }
+
+    pub fn shallow_clone(&self) -> Self {
+        LinearModel {
+            id: self.id.clone(),
+            weights: self.weights.shallow_clone(),
+            bias: self.bias.shallow_clone(),
+        }
+    }
+
+    pub fn set_weights(&mut self, weights: Tensor) {
+        self.weights = weights;
+    }
+
+    pub fn set_bias(&mut self, bias: Tensor) {
+        self.bias = bias;
+    }
+
+    pub fn forward_with_params(
+        &self,
+        x: &Tensor,
+        weights: &Tensor,
+        bias: &Tensor
+    ) -> Tensor {
+
+        x.matmul(weights) + bias
+
+    }
+
 }
 
 impl Model for LinearModel {
@@ -69,6 +97,18 @@ impl Model for LinearModel {
         }
         Ok(())
     }
+}
+
+impl Default for LinearModel {
+
+    fn default() -> Self {
+        LinearModel {
+            id: String::new(),
+            weights: Tensor::new(),
+            bias: Tensor::new(),
+        }
+    }
+
 }
 
 #[derive(Debug)]

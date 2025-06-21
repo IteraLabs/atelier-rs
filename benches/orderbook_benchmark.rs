@@ -42,6 +42,7 @@ fn create_orderbook(c: &mut Criterion) {
                         |b, &(bids_l, bids_o, asks_l, asks_o)| {
                             b.iter(|| {
                                 Orderbook::random(
+                                    Some(0),                  // update_ts
                                     black_box(ref_bid_price), // bids_price
                                     black_box(bids_l),        // bids_levels
                                     black_box(bids_o),        // bids_orders

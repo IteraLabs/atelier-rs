@@ -49,6 +49,7 @@ pub fn gbm_return(
     dt: f64,
     n: usize,
 ) -> Result<Vec<f64>, GeneratorError> {
+
     match gbm_return_valid_inputs(&s0, &sigma, &dt, &n) {
         Ok(()) => {
             let dis = probabilistic::NormalDistribution {
@@ -57,13 +58,16 @@ pub fn gbm_return(
             };
 
             if n == 1 {
-                let dwt = dis.sample(n as usize)[0];
+                
+                let dwt = dt.sqrt() * dis.sample(n as usize)[0];
                 let drift = mu * s0 * dt;
                 let diffusion = sigma * s0 * dwt;
                 let dst = drift + diffusion;
 
                 Ok(vec![dst])
+
             } else {
+
                 let dwt: Vec<f64> = dis.sample(n).clone().into_iter().collect();
                 let mut v_ds = vec![];
                 let mut v_s = vec![s0];
@@ -83,9 +87,10 @@ pub fn gbm_return(
                 }
 
                 Ok(v_ds)
+
             }
         }
-
-        Err(_e) => Err(GeneratorError::GeneratorInputTypeFailure),
+        Err(e) => Err(e),
     }
 }
+

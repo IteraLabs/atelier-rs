@@ -12,6 +12,7 @@ fn main() {
     let ini_ask_orders = Some((10, 20));
 
     let r_ob = Orderbook::random(
+        None,
         ini_bid_price,
         ini_bid_levels,
         ini_bid_orders,

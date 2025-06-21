@@ -1,4 +1,3 @@
-/// Single Agent Training
 use atelier_dcml::{functions, metrics, models, optimizers, processes};
 
 use std::{error::Error, path::Path};
@@ -28,7 +27,7 @@ pub fn main() -> Result<(), Box<dyn Error + 'static>> {
 
     // --- Extract parameters from template
     let _exp_id = &template.experiments[0].id;
-    let _n_progres = template.experiments[0].n_progressions as usize;
+    let n_progres = template.experiments[0].n_progressions as usize;
     let optimizer_model = template.models[1].params_values.clone().unwrap();
 
     // --- Data Layer --- //
@@ -91,7 +90,7 @@ pub fn main() -> Result<(), Box<dyn Error + 'static>> {
     // --- Trainer Environment (Singular) --- //
 
     let mut singular = processes::Singular::new()
-        .data(a_dataset)
+        .dataset(a_dataset)
         .model(a_model)
         .loss(a_loss)
         .optimizer(a_optimizer)
@@ -99,9 +98,9 @@ pub fn main() -> Result<(), Box<dyn Error + 'static>> {
         .build()
         .unwrap();
 
-    let epochs = 1000;
+    let epochs = n_progres;
 
-    let _ = singular.train(epochs);
+    let _ = singular.train(epochs as u32);
 
     let model_file = workspace_root
         .join("examples")

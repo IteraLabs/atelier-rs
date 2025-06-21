@@ -34,6 +34,7 @@ path = "src/lib.rs"
 atelier_dcml = { path = "../atelier-dcml", version = "0.0.1" }
 atelier_data = { path = "../atelier-data", version = "0.0.1" }
 atelier_generators = { path = "../atelier-generators", version = "0.0.1" }
+atelier_results = { path = "../atelier-results", version = "0.0.1" }
 
 # Probabilistic features
 rand = { version = "0.9.0" }

@@ -7,8 +7,8 @@ mod tests {
 
     // -------------------------------------------------------- SINGLE SYNTHETIC OB -- //
 
-    #[tokio::test]
-    async fn test_single_synthetic_ob() {
+    #[test]
+    fn test_single_synthetic_ob() {
         use atelier_data::templates;
         use atelier_synth::synthbooks::progressions;
         use std::{env, path::Path};
@@ -21,22 +21,40 @@ mod tests {
 
         // --- Template file (toml)
         let template_file = workspace_root
-            .join("atelier-synth")
+            .join("tests")
             .join("templates")
-            .join("single_orderbook.toml");
+            .join("test_template_00.toml");
         let template = templates::Config::load_from_toml(template_file.to_str().unwrap())
             .unwrap()
             .clone();
 
-        println!("model: {:?}", template.models[0].clone());
-
         // --- Extract parameters from template
+
+        let returns_model = template.models[1].clone();
+        println!("\nmodel: {:?}", returns_model);
+
         let n_progres = template.experiments[0].n_progressions as usize;
+        println!("\nn_progres: {:?}", n_progres);
+
         let template_orderbook = template.exchanges[0].orderbook.clone().unwrap();
-        let template_model = template.models[0].clone();
+        println!("\ntemplate_orderbook: {:?}", template_orderbook);
 
         // --- Create progressions
-        let _v_rand_ob =
-            progressions(template_orderbook, template_model, n_progres).await;
+        let orderbooks =
+            progressions(template_orderbook, returns_model, n_progres).unwrap();
+
+        println!("\n");
+
+        // --- Print results for debug purposes
+        for i in 0..n_progres {
+            println!(
+                "orderbook_{} - bid {:.4} - ask {:.4} - spread {:.4} - mid {:.4}",
+                i,
+                orderbooks[i].bids[0].price,
+                orderbooks[i].asks[0].price,
+                orderbooks[i].asks[0].price - orderbooks[i].bids[0].price,
+                (orderbooks[i].bids[0].price + orderbooks[i].asks[0].price) / 2.0,
+            )
+        }
     }
 }

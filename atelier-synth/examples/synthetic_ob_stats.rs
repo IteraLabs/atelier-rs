@@ -94,6 +94,7 @@ fn main() {
             let v_ask_price = ask_price + ask_price * r_amount_ret;
 
             let r_ob = Orderbook::random(
+                None,
                 v_bid_price,
                 Some((bid_levels[0], bid_levels[1])),
                 Some((bid_orders[0], bid_orders[1])),
@@ -108,16 +109,16 @@ fn main() {
 
         // --- Write into JSON "asia_orderbook.json"
         folder_route.push_str("/");
-        folder_route.push_str(&exp_id);
-        folder_route.push_str(&"_");
         folder_route.push_str(&e_id);
         folder_route.push_str(&"_");
         folder_route.push_str(&e_name);
         folder_route.push_str("_ob.json");
 
-        let ob_json = serde_json::to_string(&v_orderbook).unwrap();
-        let mut file = File::create(&folder_route).unwrap();
-        file.write_all(ob_json.as_bytes()).unwrap();
+        println!("folder_route: {:?}", folder_route);
+
+        //let ob_json = serde_json::to_string(&v_orderbook).unwrap();
+        //let mut file = File::create(&folder_route).unwrap();
+        //file.write_all(ob_json.as_bytes()).unwrap();
 
         // --- Presenting results --- //
 

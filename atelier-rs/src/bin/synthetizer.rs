@@ -50,8 +50,10 @@ pub async fn main() {
     let template_model = template.models[0].clone();
 
     // --- Create progressions
-    let v_rand_ob =
-        synthbooks::progressions(template_orderbook, template_model, n_progres).await;
+    let v_rand_ob = synthbooks::progressions(
+        template_orderbook,
+        template_model,
+        n_progres);
 
     // --- Compute basic stats
     let level_bids: Vec<f32> = v_rand_ob

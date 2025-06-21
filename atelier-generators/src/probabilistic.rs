@@ -25,6 +25,10 @@ pub trait Sampling {
     fn sample(&self, n: usize) -> Vec<f64>;
 }
 
+pub trait PDF {
+    fn fit(&mut self, data: Vec<f64>);
+}
+
 pub struct UniformDistribution {
     pub lower: f64,
     pub upper: f64,
@@ -65,30 +69,41 @@ impl Sampling for NormalDistribution {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Poisson {
     pub lambda: f64,
 }
 
 impl Sampling for Poisson {
     fn sample(&self, n: usize) -> Vec<f64> {
-        let mut samples = Vec::new();
+        let mut samples = Vec::with_capacity(n);
+        let exp_neg_lambda = (-self.lambda).exp();
 
         for _ in 0..n {
-            // Inverse Method for Random Sampling
             let mut x = 0;
             let mut p = 1.0;
             loop {
                 let u = rand::random::<f64>();
                 p *= u;
-                if p < (p.exp() * -self.lambda).exp() {
+                if p <= exp_neg_lambda {
                     break;
                 }
                 x += 1;
             }
-
             samples.push(x as f64);
         }
         samples
+    }
+}
+
+impl PDF for Poisson {
+
+    fn fit(&mut self, data: Vec<f64>) {
+
+        let sum: f64 = data.iter().sum();
+        let count = data.len() as f64;
+        self.lambda = if count > 0.0 { sum / count } else { 0.0 };
+
     }
 }
 

@@ -577,6 +577,7 @@ impl Orderbook {
     /// TODO: update this to be done with builder method.
 
     pub fn random(
+        update_ts: Option<u64>,
         bids_price: f64,
         bids_levels: Option<(u32, u32)>,
         bids_orders: Option<(u32, u32)>,
@@ -593,10 +594,16 @@ impl Orderbook {
         let mut i_bids = Vec::new();
         let mut i_asks = Vec::new();
 
-        let r_orderbook_ts = SystemTime::now()
+        // Handle update_ts with default value
+        let current_ts = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_micros() as u64;
+
+        let r_orderbook_ts = match update_ts {
+            Some(ts) => current_ts + ts,
+            _ => current_ts
+        };
 
         //  TODO: Change this to a hashed formation of the Orderbook ID
         let r_orderbook_id = 1234;

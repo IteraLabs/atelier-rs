@@ -1,0 +1,127 @@
+[[experiments]]
+id = "test_exp_00"
+n_progressions = 20
+
+# ------------------------------------------------------------ Training Environment -- //
+# ------------------------------------------------------------ -------------------- -- //
+
+[[exchanges]]
+id = "test_ex_00"
+region = "test_region_00"
+name = "test_name_00"
+category = "test_category_00"
+
+[exchanges.orderbook]
+update_freq = 20
+bid_price = 3_000.00
+bid_levels = [4, 12]
+bid_orders = [5, 15]
+ticksize = [0.2, 2.0]
+ask_price = 3_001.00
+ask_levels = [3, 13]
+ask_orders = [6, 16]
+
+[[models]]
+id = "mod_01"
+label = "GBM"
+description = "Geometric Brownian Motion"
+params_labels = ["mu", "sigma"]
+params_values = [1e-3, 1e-6]
+
+[[exchanges]]
+id = "test_ex_01"
+region = "test_region_01"
+name = "test_name_01"
+category = "test_category_01"
+
+[exchanges.orderbook]
+update_freq = 50
+bid_price = 100_000.00
+bid_levels = [5, 10]
+bid_orders = [5, 10]
+ticksize = [0.1, 1.0]
+ask_price = 100_001.00
+ask_levels = [5, 10]
+ask_orders = [5, 10]
+
+[[models]]
+id = "mod_01"
+label = "GBM"
+description = "Geometric Brownian Motion"
+params_labels = ["mu", "sigma"]
+params_values = [1e-3, 1e-6]
+
+# ------------------------------------------------------------ Training Environment -- //
+# ------------------------------------------------------------ -------------------- -- //
+
+[[models]]
+id = "md_00"
+name = "LogisticRegression"
+category = "linear"
+
+[models.parameters]
+bid_price = 100_000.00
+
+[[learning]]
+id = "lr_00"
+name = "GradientDescent"
+category = "gradient"
+
+[learning.parameters]
+lambda_1 = [0.015, 0.010, 0.005]
+lambda_2 = [0.015, 0.010, 0.05]
+eta = [0.5, 0.25, 0.10]
+
+[[training]]
+epochs = 100
+
+# --- row 0 --- #
+[[training.agent_connections]]
+from = 0
+to = 0
+weight = 0.0
+
+[[training.agent_connections]]
+from = 0
+to = 1
+weight = 0.50
+
+[[training.agent_connections]]
+from = 0
+to = 2
+weight = 0.50
+
+# --- row 1 --- #
+
+[[training.agent_connections]]
+from = 1
+to = 0
+weight = 0.50
+
+[[training.agent_connections]]
+from = 1
+to = 1
+weight = 0.0
+
+[[training.agent_connections]]
+from = 1
+to = 2
+weight = 0.50
+
+# --- row 2 --- #
+
+[[training.agent_connections]]
+from = 2
+to = 0
+weight = 0.50
+
+[[training.agent_connections]]
+from = 2
+to = 1
+weight = 0.50
+
+[[training.agent_connections]]
+from = 2
+to = 2
+weight = 0.0
+

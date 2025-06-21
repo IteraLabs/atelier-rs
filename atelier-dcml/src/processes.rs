@@ -1,3 +1,4 @@
+
 use crate::{
     functions,
     functions::{RegType, Regularized},
@@ -8,8 +9,7 @@ use crate::{
 };
 
 use atelier_data::data;
-use serde::Deserialize;
-use std::{error::Error, fs};
+use std::error::Error;
 
 use tch::Kind;
 
@@ -17,77 +17,18 @@ pub enum TrainType {
     Batch,
 }
 
-#[derive(Debug, Deserialize)]
-struct Connection {
-    from: usize,
-    to: usize,
-    weight: f64,
-}
-
-#[derive(Debug, Deserialize)]
-struct Training {
-    agents: u32,
-    agent_connections: Vec<Connection>,
-}
-
-#[derive(Debug, Deserialize)]
-struct TrainingTemplate {
-    training: Vec<Training>,
-}
-
-#[derive(Debug)]
-pub struct ConnectionsMatrix {
-    values: Vec<f64>,
-}
-
-impl ConnectionsMatrix {
-    pub fn new(self, n_rows: &usize, n_cols: &usize) -> Self {
-        let matrix_values = vec![0.0; n_rows * n_cols];
-        ConnectionsMatrix {
-            values: matrix_values,
-        }
-    }
-
-    pub fn fill(mut self, connections_file: &str) -> Result<Self, Box<dyn Error>> {
-        // Read and parse the TOML file
-        let config_str = fs::read_to_string(connections_file)
-            .expect(&format!("Failed to read config file: {}", connections_file));
-        let template: TrainingTemplate = toml::from_str(&config_str).expect(&format!(
-            "Failed to parse TOML from file: {}",
-            connections_file
-        ));
-
-        let n_agents = template.training.first().unwrap().agents;
-
-        // Fill in the matrix with connection weights
-        if let Some(training) = template.training.first() {
-            for conn in &training.agent_connections {
-                let from = conn.from as u32;
-                let to = conn.to as u32;
-                println!("from: {:?}", from);
-                println!("to: {:?}", to);
-
-                if from < n_agents && to < n_agents {
-                    let index = from * n_agents + to;
-                    self.values[index as usize] = conn.weight;
-                }
-            }
-        }
-        Ok(self)
-    }
-}
-
 ///
 /// Singular training
 ///
-/// Models: Model definition
-/// Loss: A function that implements
-/// Dataset: Features, Target
-///
+/// data: Features, Target
+/// model: Model definition
+/// loss: A function used as loss function, should implement compute_loss 
+/// optimizer: Optimization/Learning Algorithm for weight updates
+/// metrics: Learning Performance, and others.
 
 #[derive(Debug)]
 pub struct Singular {
-    data: data::Dataset,
+    dataset: data::Dataset,
     model: models::LinearModel,
     loss: functions::CrossEntropy,
     optimizer: optimizers::GradientDescent,
@@ -100,7 +41,7 @@ impl Singular {
     }
 
     pub fn train(&mut self, epochs: u32) -> Result<(), Box<dyn Error>> {
-        let (features, targets) = &self.data.clone().from_vec_to_tensor();
+        let (features, targets) = &self.dataset.clone().from_vec_to_tensor();
 
         for epoch in 0..epochs {
             // --- Forward Step --- //
@@ -163,7 +104,7 @@ impl Singular {
 }
 
 pub struct SingularBuilder {
-    data: Option<data::Dataset>,
+    dataset: Option<data::Dataset>,
     model: Option<models::LinearModel>,
     loss: Option<functions::CrossEntropy>,
     optimizer: Option<optimizers::GradientDescent>,
@@ -173,7 +114,7 @@ pub struct SingularBuilder {
 impl SingularBuilder {
     pub fn new() -> Self {
         SingularBuilder {
-            data: None,
+            dataset: None,
             model: None,
             loss: None,
             optimizer: None,
@@ -181,8 +122,8 @@ impl SingularBuilder {
         }
     }
 
-    pub fn data(mut self, data: data::Dataset) -> Self {
-        self.data = Some(data);
+    pub fn dataset(mut self, dataset: data::Dataset) -> Self {
+        self.dataset = Some(dataset);
         self
     }
 
@@ -207,14 +148,14 @@ impl SingularBuilder {
     }
 
     pub fn build(self) -> Result<Singular, &'static str> {
-        let data = self.data.ok_or("Missing data")?;
+        let dataset = self.dataset.ok_or("Missing data")?;
         let model = self.model.ok_or("MIssing model")?;
         let loss = self.loss.ok_or("Missing loss")?;
         let optimizer = self.optimizer.ok_or("Missing optimizer")?;
         let metrics = self.metrics.ok_or("Missing metrics")?;
 
         Ok(Singular {
-            data,
+            dataset,
             model,
             loss,
             optimizer,
@@ -223,38 +164,3 @@ impl SingularBuilder {
     }
 }
 
-#[derive(Debug)]
-pub struct Distributed {
-    topology: Vec<Vec<f64>>,
-}
-
-impl Distributed {
-    pub fn new() -> DistributedBuilder {
-        DistributedBuilder::new()
-    }
-
-    pub fn train(mut self) -> Result<(), Box<dyn Error>> {
-        // 1. Compute Gradients
-        // 2. Collect parameters
-        // 3. Compute consensus
-        // 4. Compute metrics
-        self.topology = vec![vec![0.0]];
-
-        Ok(())
-    }
-}
-
-pub struct DistributedBuilder {
-    topology: Option<Vec<Vec<f64>>>,
-}
-
-impl DistributedBuilder {
-    pub fn new() -> Self {
-        DistributedBuilder { topology: None }
-    }
-
-    pub fn topology(mut self, topology: Vec<Vec<f64>>) -> Self {
-        self.topology = Some(topology);
-        self
-    }
-}

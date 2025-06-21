@@ -9,6 +9,7 @@ name = "binance"
 category = "cex"
 
 [exchanges.orderbook]
+update_freq = 50
 bid_price = 100_000.00
 bid_levels = [5, 10]
 bid_orders = [5, 10]

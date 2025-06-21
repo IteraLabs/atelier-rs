@@ -23,6 +23,7 @@ mod test_orderbook_utils {
         let ini_ask_orders = Some((10, 20));
 
         Orderbook::random(
+            None,
             ini_bid_price,
             ini_bid_levels,
             ini_bid_orders,

@@ -46,6 +46,13 @@ futures = { version = "0.3" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 
+# AI/ML with LibTorch from C++
+tch = { version = "0.20.0" }
+
+[[test]]
+name = "test_loss_function"
+path = "dcml/test_loss_functions.rs"
+
 [[test]]
 name = "test_compute_features"
 path = "dcml/test_compute_features.rs"
@@ -55,6 +62,14 @@ name = "test_single_synthetic_ob"
 path = "synth/test_single_synthetic_ob.rs"
 
 [[test]]
+name = "test_multiple_synthetic_ob"
+path = "synth/test_multiple_synthetic_ob.rs"
+
+[[test]]
 name = "test_basic_orderbook"
-path = "core/test_basic_orderbook.rs"
+path = "data/test_basic_orderbook.rs"
+
+[[test]]
+name = "test_probabilistic_fit"
+path = "generators/test_probabilistic_fit.rs"
 

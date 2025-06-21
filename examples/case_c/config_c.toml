@@ -6,21 +6,21 @@ n_progressions = 1000
 
 [[models]]
 id = "mod_ai_00"
-label = "gbm"
+label = "GBM"
 description = "Geometric Brownian Motion"
 params_labels = ["mu", "sigma"]
 params_values = [0.01, 0.001]
 
 [[models]]
 id = "mod_ai_01"
-label = "gbm"
+label = "GBM"
 description = "Geometric Brownian Motion"
 params_labels = ["mu", "sigma"]
 params_values = [0.01, 0.001]
 
 [[models]]
 id = "mod_ai_02"
-label = "gbm"
+label = "GBM"
 description = "Geometric Brownian Motion"
 params_labels = ["mu", "sigma"]
 params_values = [0.01, 0.001]
@@ -29,21 +29,21 @@ params_values = [0.01, 0.001]
 
 [[models]]
 id = "mod_eu_00"
-label = "gbm"
+label = "GBM"
 description = "Geometric Brownian Motion"
 params_labels = ["mu", "sigma"]
 params_values = [0.01, 0.001]
 
 [[models]]
 id = "mod_eu_01"
-label = "gbm"
+label = "GBM"
 description = "Geometric Brownian Motion"
 params_labels = ["mu", "sigma"]
 params_values = [0.01, 0.001]
 
 [[models]]
 id = "mod_eu_02"
-label = "gbm"
+label = "GBM"
 description = "Geometric Brownian Motion"
 params_labels = ["mu", "sigma"]
 params_values = [0.01, 0.001]
@@ -52,21 +52,21 @@ params_values = [0.01, 0.001]
 
 [[models]]
 id = "mod_am_00"
-label = "gbm"
+label = "GBM"
 description = "Geometric Brownian Motion"
 params_labels = ["mu", "sigma"]
 params_values = [0.01, 0.001]
 
 [[models]]
 id = "mod_am_01"
-label = "gbm"
+label = "GBM"
 description = "Geometric Brownian Motion"
 params_labels = ["mu", "sigma"]
 params_values = [0.01, 0.001]
 
 [[models]]
 id = "mod_am_02"
-label = "gbm"
+label = "GBM"
 description = "Geometric Brownian Motion"
 params_labels = ["mu", "sigma"]
 params_values = [0.01, 0.001]
@@ -80,6 +80,7 @@ name = "binance"
 category = "cex"
 
 [exchanges.orderbook]
+update_freq = 50
 bid_price = 100_000.00
 bid_levels = [5, 10]
 bid_orders = [5, 10]
@@ -96,6 +97,7 @@ name = "gate"
 category = "cex"
 
 [exchanges.orderbook]
+update_freq = 50
 bid_price = 100_000.00
 bid_levels = [5, 10]
 bid_orders = [5, 10]
@@ -112,6 +114,7 @@ name = "okx"
 category = "cex"
 
 [exchanges.orderbook]
+update_freq = 50
 bid_price = 100_000.00
 bid_levels = [5, 10]
 bid_orders = [5, 10]
@@ -130,6 +133,7 @@ name = "kraken"
 category = "cex"
 
 [exchanges.orderbook]
+update_freq = 50
 bid_price = 100_000.00
 bid_levels = [5, 10]
 bid_orders = [5, 10]
@@ -146,6 +150,7 @@ name = "bitstamp"
 category = "cex"
 
 [exchanges.orderbook]
+update_freq = 50
 bid_price = 100_000.00
 bid_levels = [5, 10]
 bid_orders = [5, 10]
@@ -162,6 +167,7 @@ name = "bitfinex"
 category = "cex"
 
 [exchanges.orderbook]
+update_freq = 50
 bid_price = 100_000.00
 bid_levels = [5, 10]
 bid_orders = [5, 10]
@@ -180,6 +186,7 @@ name = "coinbase"
 category = "cex"
 
 [exchanges.orderbook]
+update_freq = 50
 bid_price = 100_000.00
 bid_levels = [5, 10]
 bid_orders = [5, 10]
@@ -196,6 +203,7 @@ name = "bitso"
 category = "cex"
 
 [exchanges.orderbook]
+update_freq = 50
 bid_price = 100_000.00
 bid_levels = [5, 10]
 bid_orders = [5, 10]
@@ -212,6 +220,7 @@ name = "gemini"
 category = "cex"
 
 [exchanges.orderbook]
+update_freq = 50
 bid_price = 100_000.00
 bid_levels = [5, 10]
 bid_orders = [5, 10]
@@ -220,6 +229,4 @@ ask_price = 100_001.00
 ask_levels = [5, 10]
 ask_orders = [5, 10]
 rands = [-0.01, 0.01]
-
-
 

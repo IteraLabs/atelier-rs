@@ -1,5 +1,3 @@
-//! Single Market Synthetic Data Generation
-
 use atelier_data::{data, templates};
 use atelier_dcml::{features, targets};
 use atelier_synth::synthbooks::progressions;
@@ -30,7 +28,7 @@ pub async fn main() {
     let returns_model = template.models[0].clone();
 
     // --- Create Orderbook Progressions
-    let orderbook = progressions(template_orderbook, returns_model, n_progres).await;
+    let orderbook = progressions(template_orderbook, returns_model, n_progres);
 
     // --- Orderbook data file (json)
     let file_name_ob = exp_id.to_owned() + "_ob" + ".json";

@@ -1,6 +1,6 @@
 [[experiments]]
 id = "case_a"
-n_progressions = 1000
+n_progressions = 10
 
 [[exchanges]]
 id = "exc_00"
@@ -9,6 +9,7 @@ name = "exchange_a"
 category = "cex"
 
 [exchanges.orderbook]
+update_freq = 50
 bid_price = 100_000.00
 bid_levels = [10, 50]
 bid_orders = [5, 15]

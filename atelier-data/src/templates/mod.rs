@@ -119,6 +119,7 @@ impl ModelConfigBuilder {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct OrderbookConfig {
+    pub update_freq: Option<u64>,
     pub bid_price: Option<f64>,
     pub bid_levels: Option<Vec<u32>>,
     pub bid_orders: Option<Vec<u32>>,
@@ -137,6 +138,7 @@ impl OrderbookConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct OrderbookConfigBuilder {
+    pub update_freq: Option<u64>,
     pub bid_price: Option<f64>,
     pub bid_levels: Option<Vec<u32>>,
     pub bid_orders: Option<Vec<u32>>,
@@ -150,6 +152,7 @@ pub struct OrderbookConfigBuilder {
 impl OrderbookConfigBuilder {
     pub fn new() -> Self {
         OrderbookConfigBuilder {
+            update_freq: None,
             bid_price: None,
             bid_levels: None,
             bid_orders: None,
@@ -159,6 +162,11 @@ impl OrderbookConfigBuilder {
             ask_orders: None,
             rands: None,
         }
+    }
+
+    pub fn update_freq(mut self, update_freq: u64) -> Self {
+        self.update_freq = Some(update_freq);
+        self
     }
 
     pub fn bid_price(mut self, bid_price: f64) -> Self {
@@ -197,6 +205,7 @@ impl OrderbookConfigBuilder {
     }
 
     pub fn build(self) -> Result<OrderbookConfig, &'static str> {
+        let update_freq = self.update_freq.ok_or("Missing initial update freq")?;
         let bid_price = self.bid_price.ok_or("Missing initial bid price")?;
         let bid_levels = self.bid_levels.ok_or("Missing initial bid levels")?;
         let bid_orders = self.bid_orders.ok_or("Missing initial bid orders")?;
@@ -207,6 +216,7 @@ impl OrderbookConfigBuilder {
         let rands = self.rands.ok_or("Missing initial random numbers")?;
 
         Ok(OrderbookConfig {
+            update_freq: Some(update_freq),
             bid_price: Some(bid_price),
             bid_levels: Some(bid_levels),
             bid_orders: Some(bid_orders),

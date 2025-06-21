@@ -67,3 +67,11 @@ pub enum EventError {
     #[error("The Event Generator function failed")]
     EventFailure,
 }
+
+#[derive(Error, Debug)]
+pub enum SynthetizerError {
+    // Progression Generation Error
+    #[error("The progression generation was unsuccessful {0}")]
+    GenerationError(String),
+}
+
