@@ -64,33 +64,50 @@ pub struct ConfusionMatrixComponents {
 }
 
 impl ConfusionMatrixComponents {
-    pub fn from_tensors(y: &Tensor, y_pred: &Tensor, threshold: Option<f64>) -> Self {
-        // Apply threshold to get binary predictions
-        let threshold: f64 = threshold.unwrap_or(0.5);
-        let preds_binary: Tensor = y_pred.ge(threshold).to_kind(Kind::Float);
-        let labels: Tensor = y.to_kind(Kind::Float);
+    pub fn from_tensors(y_true: &Tensor, y_pred: &Tensor, threshold: Option<f64>) -> Self {
+        let threshold = threshold.unwrap_or(0.5);
+        
+        // For classification, use argmax instead of threshold
+        let predictions = if y_pred.size().len() > 1 && y_pred.size()[1] > 1 {
+            y_pred.argmax(1, false) // Multi-class classification
+        } else {
+            y_pred.ge(threshold).to_kind(Kind::Float) // Binary classification
+        };
+        
+        let labels = y_true.to_kind(Kind::Float);
+        
+        // Calculate components correctly
+        let _correct = predictions.eq_tensor(&labels);
+        let _total_samples = labels.size()[0] as f64;
+        
+        // For binary classification
+        let tp_tensor: Tensor = &predictions * &labels;
+        let tp: f64 = tp_tensor.sum(Kind::Float).double_value(&[]);
 
-        // Calculate confusion matrix components
-        let tp = (&preds_binary * &labels).sum(Kind::Float);
-        let fp = (&preds_binary * (Tensor::from(1.0) - &labels)).sum(Kind::Float);
-        let fn_ = ((Tensor::from(1.0) - &preds_binary) * &labels).sum(Kind::Float);
-        let tn = ((Tensor::from(1.0) - &preds_binary) * (Tensor::from(1.0) - &labels))
-            .sum(Kind::Float);
+        let tn_tensor: Tensor = (1.0 - &predictions) * (1.0 - &labels);
+        let tn: f64 = tn_tensor.sum(Kind::Float).double_value(&[]);
 
+        let fp_tensor: Tensor = &predictions * (1.0 - &labels);
+        let fp: f64 = fp_tensor.sum(Kind::Float).double_value(&[]);
+
+        let fn_tensor: Tensor = (1.0 - &predictions) * &labels;
+        let fn_val: f64 = fn_tensor.sum(Kind::Float).double_value(&[]);
+        
         ConfusionMatrixComponents {
-            true_positive: f64::from(tp.double_value(&[])),
-            false_positive: f64::from(fp.double_value(&[])),
-            false_negative: f64::from(fn_.double_value(&[])),
-            true_negative: f64::from(tn.double_value(&[])),
+            true_positive: tp.max(0.0),
+            true_negative: tn.max(0.0),
+            false_positive: fp.max(0.0),
+            false_negative: fn_val.max(0.0),
         }
     }
-
+    // Add this method
     pub fn total(&self) -> f64 {
-        self.true_positive
-            + self.false_positive
-            + self.false_negative
-            + self.true_negative
+        self.true_positive + 
+        self.true_negative + 
+        self.false_positive + 
+        self.false_negative
     }
+
 }
 
 // Concrete metric implementations

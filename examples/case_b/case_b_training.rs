@@ -21,8 +21,8 @@ pub fn main() {
     // --- Template file (toml)
     let template_file = workspace_root
         .join("examples")
-        .join("case_a")
-        .join("config_a.toml");
+        .join("case_b")
+        .join("config_b.toml");
 
     let template = templates::Config::load_from_toml(template_file.to_str().unwrap())
         .unwrap()
@@ -130,7 +130,7 @@ pub fn main() {
 
     let b_optimizer = optimizers::GradientDescent::new()
         .id("opt_00".to_string())
-        .learning_rate(optimizer_model[0])
+        .learning_rate(optimizer_model[0].abs())
         .build()
         .unwrap();
 
@@ -148,9 +148,9 @@ pub fn main() {
         .topology(topology)
         .optimizer(b_optimizer)
         .strategy(processes::UpdateStrategy::CombineThenAdapt) // or AdaptThenCombine
-        .learning_rate(0.0001)
+        .learning_rate(0.05)
         .build();
 
     // Train the distributed system
-    let _ = distributed_trainer.unwrap().train(100);
+    let _ = distributed_trainer.unwrap().train(10);
 }

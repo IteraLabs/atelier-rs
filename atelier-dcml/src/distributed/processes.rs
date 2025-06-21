@@ -1,10 +1,7 @@
 use crate::{
     functions,
-    functions::{RegType, Regularized},
     metrics, models,
-    models::Model,
     optimizers,
-    optimizers::Optimizer,
 };
 
 use atelier_data::data;
@@ -162,98 +159,73 @@ impl Distributed {
 
     // ----------------------------------------------------------- STRATEGY 1: CTA --- //
     
+    
     fn combine_then_adapt_step(
         &mut self,
         n_agents: usize,
         _device: Device
-        ) -> Result<(), Box<dyn Error>> {
-
-        // --- Step 1: Combine (Consensus)
+    ) -> Result<(), Box<dyn Error>> {
+        // Step 1: Combine (Consensus) - collect all model states first
+        let model_weights: Vec<Tensor> = self.v_models.iter()
+            .map(|m| m.weights.shallow_clone())
+            .collect();
+        let model_biases: Vec<Tensor> = self.v_models.iter()
+            .map(|m| m.bias.shallow_clone())
+            .collect();
+        
         let mut mixed_weights = Vec::new();
         let mut mixed_biases = Vec::new();
 
         for i in 0..n_agents {
-
-            let mut combined_weight = Tensor::zeros_like(&self.v_models[i].weights);
-            let mut combined_bias = Tensor::zeros_like(&self.v_models[i].bias);
+            let mut combined_weight = Tensor::zeros_like(&model_weights[i]);
+            let mut combined_bias = Tensor::zeros_like(&model_biases[i]);
 
             // Weighted combination based on topology
             for j in 0..n_agents {
-
                 let weight_ij = self.topology.get_weight(i, j);
                 if weight_ij > 0.0 {
-                    combined_weight += &self.v_models[j].weights * weight_ij;
-                    combined_bias += &self.v_models[j].bias * weight_ij;
+                    combined_weight += &model_weights[j] * weight_ij;
+                    combined_bias += &model_biases[j] * weight_ij;
                 }
-
             }
 
             mixed_weights.push(combined_weight);
             mixed_biases.push(combined_bias);
-
         }
 
-        // --- Step 2: Adapt - Gradient descent on mixed variables
+        // Step 2: Adapt - Gradient descent on mixed variables
         for i in 0..n_agents {
+            let (features, targets) = self.v_datasets[i].clone().from_vec_to_tensor();
 
-            // Dataset extraction for model
-            let (features, targets) = self
-                .v_datasets[i]
-                .clone()
-                .from_vec_to_tensor();
-
-            // Create new leaf tensors with gradient tracking
+            // Create leaf tensors for gradient computation
             let mut weight_var = mixed_weights[i].detach().requires_grad_(true);
             let mut bias_var = mixed_biases[i].detach().requires_grad_(true);
 
             // Forward pass with mixed weights
-            let y_hat = self
-                .v_models[i]
-                .forward_with_params(&features, &weight_var, &bias_var);
+            let linear_output = features.matmul(&weight_var) + &bias_var;
+            let y_hat = linear_output.sigmoid(); // or appropriate activation
 
             // Compute loss
-            let loss = self
-                .v_losses[i]
-                .compute_loss(&y_hat, &targets);
+            let loss = self.v_losses[i].compute_loss(&y_hat, &targets);
 
-            let reg_param_c = 5.0;
-            let reg_param_lambda = 0.9;
+            // Backward pass
+            loss.backward();
 
-            let reg_loss = self
-                .v_losses[i]
-                .regularize(
-                    &weight_var,
-                    &RegType::Elasticnet,
-                    vec![reg_param_c, reg_param_lambda],
-                )
-                .sum(Kind::Float);
+            // Get gradients
+            let weight_grad = weight_var.grad();
+            let bias_grad = bias_var.grad();
 
-            let total_loss = &loss + &reg_loss;
-            total_loss.backward();
+            // Update actual model weights using no_grad
+            tch::no_grad(|| {
+                self.v_models[i].weights = &mixed_weights[i] - &weight_grad * self.learning_rate;
+                self.v_models[i].bias = &mixed_biases[i] - &bias_grad * self.learning_rate;
+            });
 
-            // Update weights using gradients
-            let c_w = weight_var.grad();
-            let c_b = bias_var.grad();
-
-            // Temporarily remove the model to mutate it
-            let mut model = std::mem::take(&mut self.v_models[i]);
-            
-            // Apply optimization step
-            self.optimizer.step(
-                &mut model.weights,
-                &mut model.bias,
-                &c_w, 
-                &c_b,
-            );
-            
-            // Put model back
-            self.v_models[i] = model;
-            
-            // Zero gradients for next iteration
+            // Clear gradients
             weight_var.zero_grad();
             bias_var.zero_grad();
-
         }
+
         Ok(())
     }
     
@@ -264,108 +236,99 @@ impl Distributed {
         n_agents: usize,
         _device: Device
     ) -> Result<(), Box<dyn Error>> {
-    
+        // Step 1: Adapt - Local gradient descent first
         let mut adapted_weights = Vec::new();
         let mut adapted_biases = Vec::new();
 
-        // --- Step 1: Adapt - Gradient descent on local variables
         for i in 0..n_agents {
+            let (features, targets) = self.v_datasets[i].clone().from_vec_to_tensor();
 
-            // Dataset extraction for model
-            let (features, targets) = &self
-                .v_datasets[i]
-                .clone()
-                .from_vec_to_tensor();
-
-            // Enable gradients
+            // Enable gradients and retain for non-leaf tensors
             let _ = self.v_models[i].weights.requires_grad_(true);
             let _ = self.v_models[i].bias.requires_grad_(true);
 
-            // Forward pass
-            let y_hat = self
-                .v_models[i]
-                .forward(&features);
+            // Forward pass with retained gradients
+            let linear_output = features.matmul(&self.v_models[i].weights) + &self.v_models[i].bias;
+            let y_hat = linear_output.sigmoid();
 
             // Compute loss
-            let loss = self
-                .v_losses[i]
-                .compute_loss(&y_hat, &targets);
+            let loss = self.v_losses[i].compute_loss(&y_hat, &targets);
 
-            let reg_param_c = 1.9;
-            let reg_param_lambda = 0.8;
-            
-            // Add regularization
-            let reg_loss = self
-                .v_losses[i]
-                .regularize(
-                    &self.v_models[i].weights,
-                    &RegType::Elasticnet,
-                    vec![reg_param_c, reg_param_lambda],
-                )
-                .sum(Kind::Float);
+            // Backward pass with retained gradients
+            y_hat.retains_grad();
+            loss.backward();
 
-            let total_loss = &loss + &reg_loss;
-            total_loss.backward();
+            // Get gradients with defined() check
+            let weight_grad = self.v_models[i].weights.grad();
+            let bias_grad = self.v_models[i].bias.grad();
 
-            // Compute gradients
-            let c_w = self.v_models[i].weights.grad();
-            let c_b = self.v_models[i].bias.grad();
+            // Validate gradients before use
+            if !weight_grad.defined() || !bias_grad.defined() {
+                return Err("Undefined gradients after backward pass".into());
+            }
 
-            // Local adaptation step
-            let adapted_weight = &self.v_models[i].weights - &c_w * self.learning_rate;
-            let adapted_bias = &self.v_models[i].bias - &c_b * self.learning_rate;
+            // Compute adapted weights in no_grad block
+            tch::no_grad(|| {
+                let adapted_weight = &self.v_models[i].weights - &weight_grad * self.learning_rate;
+                let adapted_bias = &self.v_models[i].bias - &bias_grad * self.learning_rate;
 
-            adapted_weights.push(adapted_weight);
-            adapted_biases.push(adapted_bias);
+                adapted_weights.push(adapted_weight);
+                adapted_biases.push(adapted_bias);
 
-            // Zero gradients
-            self.v_models[i].weights.zero_grad();
-            self.v_models[i].bias.zero_grad();
+                // Reset gradients safely
+                self.v_models[i].weights.zero_grad();
+                self.v_models[i].bias.zero_grad();
+            });
         }
 
-        // Step 2: Combine - Consensus on adapted variables
+        // Step 2: Combine - Consensus on adapted weights
         for i in 0..n_agents {
-
             let mut combined_weight = Tensor::zeros_like(&adapted_weights[i]);
             let mut combined_bias = Tensor::zeros_like(&adapted_biases[i]);
 
-            // Weighted combination based on topology
-            for j in 0..n_agents {
-
-                let weight_ij = self.topology.get_weight(i, j);
-                if weight_ij > 0.0 {
-                    combined_weight += &adapted_weights[j] * weight_ij;
-                    combined_bias += &adapted_biases[j] * weight_ij;
+            // Weighted combination in no_grad block
+            tch::no_grad(|| {
+                for j in 0..n_agents {
+                    let weight_ij = self.topology.get_weight(i, j);
+                    if weight_ij > 0.0 {
+                        combined_weight += &adapted_weights[j] * weight_ij;
+                        combined_bias += &adapted_biases[j] * weight_ij;
+                    }
                 }
-
-            }
-
-            // Update model with combined weights
-            self.v_models[i].weights = combined_weight;
-            self.v_models[i].bias = combined_bias;
+                
+                // Update model weights
+                self.v_models[i].weights = combined_weight;
+                self.v_models[i].bias = combined_bias;
+            });
         }
 
         Ok(())
     }
-
     fn log_metrics(&mut self, epoch: usize) -> Result<(), Box<dyn Error>> {
-
-        let mut v_losses: Vec<f64> = Vec::new();
-        let mut v_accuracies: Vec<f64> = Vec::new();
+        let mut v_losses = Vec::new();
+        let mut v_accuracies = Vec::new();
 
         for i in 0..self.v_models.len() {
-
-            let (features, targets) = &self.v_datasets[i].clone().from_vec_to_tensor();
-            let y_hat = self.v_models[i].forward(&features);
+            let (features, targets) = self.v_datasets[i].clone().from_vec_to_tensor();
+            
+            // Forward pass for evaluation
+            let linear_output = features.matmul(&self.v_models[i].weights) + &self.v_models[i].bias;
+            let y_hat = linear_output.sigmoid();
+            
+            // Compute loss
             let loss = self.v_losses[i].compute_loss(&y_hat, &targets);
-            let metrics = self.v_metrics[i].compute_all(&y_hat, &targets);
-
-            println!("metrics[{:?}] {:?}", metrics, i);
-
-            let loss_value: f64 = loss.double_value(&[]);
-            v_accuracies.push(metrics["accuracy"].as_scalar().unwrap());
-            v_losses.push(loss_value);
-
+            
+            // Manual accuracy calculation to ensure correctness
+            let predictions = y_hat.ge(0.5).to_kind(Kind::Float);
+            let correct = predictions.eq_tensor(&targets).sum(Kind::Float);
+            let total = targets.size()[0] as f64;
+            let accuracy = correct.double_value(&[]) / total;
+            
+            // Ensure accuracy is in valid range [0, 1]
+            let clamped_accuracy = accuracy.max(0.0).min(1.0);
+            
+            v_losses.push(loss.double_value(&[]));
+            v_accuracies.push(clamped_accuracy);
         }
 
         println!(
